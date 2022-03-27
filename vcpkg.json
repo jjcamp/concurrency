@@ -1,0 +1,14 @@
+{
+    "name": "jjc-concurrency",
+    "version-string": "none",
+    "description": "Collection of concurrency primitives and high-level constructs",
+    "homepage": "https://github.com/jjcamp/concurrency",
+    "license": "MIT",
+    "maintainers": [
+        "John Camp <jjcamp@gmail.com>"
+    ],
+    "$comment": "required for development only",
+    "dependencies": [
+        "catch2"
+    ]
+}
