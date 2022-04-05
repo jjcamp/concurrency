@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#if !defined(_WIN32) && !defined(__linux__)
+#if !defined(_WIN32) && !defined(__linux__) && !defined(__APPLE__)
 #error "System is not currently supported"
 #endif
 

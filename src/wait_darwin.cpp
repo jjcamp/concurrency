@@ -18,8 +18,8 @@ namespace {
 
 // op
 constexpr uint32_t compare_and_wait = 1;
-constexpr uint32_t wake_one = 0;
-constexpr uint32_t wake_all = 1 << 2;
+constexpr uint32_t wake_one_flag = 0;
+constexpr uint32_t wake_all_flag = 1 << 2;
 
 // timeout
 constexpr uint32_t infinite = 0;
@@ -45,12 +45,12 @@ int wait_for_impl(void* obj, void* expected, const std::chrono::milliseconds& d)
 }
 
 int wake_impl(void* obj, uint32_t count) noexcept {
-    const auto wake_flag = count == 1 ? wake_one : wake_all;
+    const auto wake_flag = count == 1 ? wake_one_flag : wake_all_flag;
     return __ulock_wake(compare_and_wait | wake_flag, obj, 0);
 }
 
 int wake_all_impl(void* obj) noexcept {
-    return __ulock_wake(compare_and_wait | wake_all, obj, 0);
+    return __ulock_wake(compare_and_wait | wake_all_flag, obj, 0);
 }
 
 }

@@ -33,12 +33,8 @@ elseif ("Linux" STREQUAL CMAKE_SYSTEM_NAME)
         INTERFACE atomic
     )
 elseif (APPLE)
-    message(WARNING "Using untested wait functions for Darwin")
     target_sources(jjc-concurrency
         PRIVATE src/wait_darwin.cpp
-    )
-    target_link_libraries(jjc-concurrency
-        INTERFACE atomic
     )
 endif()
 
