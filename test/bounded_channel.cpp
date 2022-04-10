@@ -119,10 +119,7 @@ TEMPLATE_TEST_CASE("bounded channel", "[mpsc]", int, std::unique_ptr<int>) {
 
         auto total = 0;
         latch.arrive_and_wait();
-        while (true) {
-            auto r = recv.receive();
-            if (r.result == jjc::mpsc::status::CLOSED) break;
-            CHECK(r);
+        for ([[maybe_unused]] auto& _ : recv) {
             ++total;
         }
 

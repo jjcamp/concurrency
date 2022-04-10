@@ -65,12 +65,8 @@ TEMPLATE_TEST_CASE("rendezvous channel", "[mpsc]", int, std::unique_ptr<int>) {
         });
 
         auto received = std::vector<TestType>();
-        for (
-            auto r = recv.receive();
-            r.result != jjc::mpsc::status::CLOSED;
-            r = recv.receive()
-        ) {
-            received.push_back(std::move(r.value()));
+        for (auto&& value : recv) {
+            received.push_back(std::move(value));
         }
 
         REQUIRE(4 == received.size());

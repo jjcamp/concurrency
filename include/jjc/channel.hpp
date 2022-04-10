@@ -167,8 +167,34 @@ struct receiver {
     receiver& operator=(receiver&&) noexcept = default;
     receiver& operator=(const receiver&) = delete;
 
+    struct iterator {
+        T& operator *() { return *_result; }
+        iterator& operator++() { _result = _channel->receive(); return *this; }
+        bool operator!=(const iterator& rhs) { return _result.has_value() || rhs._result.has_value(); }
+
+    private:
+        friend iterator begin(receiver& r);
+        friend constexpr iterator end(const receiver&) noexcept;
+        constexpr iterator() noexcept = default;
+        constexpr iterator(detail::receiver<T>* channel, recv_result<T> result) noexcept :
+            _channel(channel),
+            _result(std::move(result))
+        {}
+        detail::receiver<T>* _channel = nullptr;
+        recv_result<T> _result = { status::CLOSED };
+    };
+
 private:
     friend auto channel<T>(std::ptrdiff_t) -> std::pair<sender<T>, receiver<T>>;
+
+    friend iterator begin(receiver& r) {
+        auto item = r.receive();
+        return { r._channel.get(), std::move(item) };
+    }
+
+    friend constexpr iterator end(const receiver&) noexcept {
+        return {};
+    }
 
     explicit receiver(std::shared_ptr<detail::receiver<T>> ch) :
         _channel(std::move(ch))
