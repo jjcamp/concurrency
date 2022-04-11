@@ -35,14 +35,19 @@ struct event {
             }
         }
         // only wake if the event was unsignaled
-        if (0 == (prev & 1)) {
+        if (!is_signaled(prev)) {
             detail::concurrency::wake_all(&_value);
         }
     }
 
     void wait() {
-        auto prev = _value.load(std::memory_order_relaxed);
-        if (check_reset(prev)) return;
+        auto prev = _value.load(std::memory_order_acquire);
+        if (is_signaled(prev)) {
+            if (_value.compare_exchange_strong(prev, prev + 1, std::memory_order_release, std::memory_order_acquire)) {
+                return;
+            }
+            if (is_signaled(prev)) return;
+        }
 
         auto event = prev + 1;
         do {
@@ -51,7 +56,7 @@ struct event {
 
         } while (prev < event);
 
-        check_reset(prev);
+        _value.compare_exchange_strong(event, event + 1, std::memory_order_release, std::memory_order_relaxed);
     }
 
     template<typename Rep, typename Period>
@@ -62,8 +67,13 @@ struct event {
 
     template<typename Clock, typename Duration>
     bool wait_until(const std::chrono::time_point<Clock, Duration>& t) {
-        auto prev = _value.load(std::memory_order_relaxed);
-        if (check_reset(prev)) return true;
+        auto prev = _value.load(std::memory_order_acquire);
+        if (is_signaled(prev)) {
+            if (_value.compare_exchange_strong(prev, prev + 1, std::memory_order_release, std::memory_order_acquire)) {
+                return true;
+            }
+            if (is_signaled(prev)) return true;
+        }
 
         auto event = prev + 1;
         do {
@@ -77,15 +87,13 @@ struct event {
 
         } while (prev < event);
 
-        check_reset(prev);
-
+        _value.compare_exchange_strong(event, event + 1, std::memory_order_release, std::memory_order_relaxed);
         return true;
     }
 
 private:
-    bool check_reset(uint32_t& prev) noexcept {
-        return (1 == (prev & 1)) &&
-            _value.compare_exchange_strong(prev, prev + 1, std::memory_order_release, std::memory_order_relaxed);
+    constexpr bool is_signaled(uint32_t v) {
+        return 1 == (v & 1);
     }
 
     // An incrementing event counter. Odd values indicate a signaled event, even
