@@ -1,0 +1,42 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - image: ubuntu-latest
+            env:
+              CXX: g++-10
+              CXXFLAGS: -Wall -Werror -Wpedantic -Wno-non-template-friend
+          - image: windows-latest
+            env:
+              CXXFLAGS: /W3 /WX
+
+    runs-on: ${{matrix.image}}
+    env: ${{matrix.env}}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: vcpkg
+      uses: lukka/run-vcpkg@v10
+      with:
+        vcpkgDirectory: ${{runner.workspace}}/vcpkg
+        vcpkgGitCommitId: af2287382b1991dbdcb7e5112d236f3323b9dd7a
+
+    - name: Configure
+      run: |
+        mkdir build && cd build
+        cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake -DBUILD_TESTS=ON
+
+    - name: Build
+      run: cmake --build build --config=Release
+
+    - name: Test
+      timeout-minutes: 5
+      run: |
+        cd build
+        ctest
