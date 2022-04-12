@@ -11,6 +11,9 @@ jobs:
             env:
               CXX: g++-10
               CXXFLAGS: -Wall -Werror -Wpedantic -Wno-non-template-friend
+          - image: macos-latest
+            env:
+              CXXFLAGS: -Wall -Werror -Wpedantic
           - image: windows-latest
             env:
               CXXFLAGS: /W3 /WX
