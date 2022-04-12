@@ -36,3 +36,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test-main.cpp
 target_sources(jjc-concurrency-test
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/test-main.cpp
 )
+
+include(CTest)
+include(Catch)
+catch_discover_tests(jjc-concurrency-test)
